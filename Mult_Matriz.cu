@@ -35,8 +35,6 @@ int main() {
         }
     }
 
-    h_A[5] = 4;
-
     // Aloca matrizes de dispositivo (A, B e C)
     cudaMalloc((void **)&d_A, size);
     cudaMalloc((void **)&d_B, size);
