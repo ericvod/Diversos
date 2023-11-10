@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <cuda_runtime.h>
 
-#define  N 4
+#define N 3
 #define BLOCK_SIZE 2
 
 __global__ void matrixMul(int *A, int *B, int *C, int n) {
@@ -10,9 +10,11 @@ __global__ void matrixMul(int *A, int *B, int *C, int n) {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (col < n && row < n) {
+        int soma = 0;
         for (int k = 0; k < n; ++k) {
-            C[row * n + col] = A[row * n + k] * B[k * n + col];
+            soma += A[row * n + k] * B[k * n + col];
         }
+        C[row * n + col] = soma;
     }
 }
 
@@ -30,8 +32,8 @@ int main() {
     // Inicializa matrizes h_A e h_B
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
-            h_A[i * N + j] = 2;
-            h_B[i * N + j] = 1;
+            h_A[i * N + j] = 1;
+            h_B[i * N + j] = 2;
         }
     }
 
@@ -61,6 +63,7 @@ int main() {
         }
         printf("\n");
     }
+    printf("\n");
 
     // Imprima a matriz h_B
     printf("Matriz B:\n");
@@ -70,6 +73,7 @@ int main() {
         }
         printf("\n");
     }
+    printf("\n");
 
     // Imprima a matriz H_C
     printf("Resultado da multiplicacao de matrizes:\n");
