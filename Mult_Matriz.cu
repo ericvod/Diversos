@@ -5,7 +5,7 @@
 #define N 3
 #define BLOCK_SIZE 2
 
-__global__ void matrixMul(int *A, int *B, int *C, int n) {
+__global__ void matrizMul(int *A, int *B, int *C, int n) {
     int col = blockIdx.x * blockDim.x + threadIdx.x;
     int row = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -19,17 +19,18 @@ __global__ void matrixMul(int *A, int *B, int *C, int n) {
 }
 
 int main() {
+    // Declaração das matrizes (váriaveis)
     int *h_A, *h_B, *h_C;
     int *d_A, *d_B, *d_C;
     size_t size = N * N * sizeof(int);
 
-    // Aloca e inicializa matrizes de host (A, B e C)
+    // Aloca matrizes de host (CPU)
     h_A = (int*)malloc(size);
     h_B = (int*)malloc(size);
     h_C = (int*)malloc(size);
 
 
-    // Inicializa matrizes h_A e h_B
+    // Inicializa matrizes A e B
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
             h_A[i * N + j] = 1;
@@ -37,7 +38,9 @@ int main() {
         }
     }
 
-    // Aloca matrizes de dispositivo (A, B e C)
+    // h_B[8] = 3;
+
+    // Aloca matrizes de dispositivo (GPU)
     cudaMalloc((void **)&d_A, size);
     cudaMalloc((void **)&d_B, size);
     cudaMalloc((void **)&d_C, size);
@@ -46,16 +49,20 @@ int main() {
     cudaMemcpy(d_A, h_A, size, cudaMemcpyHostToDevice);
     cudaMemcpy(d_B, h_B, size, cudaMemcpyHostToDevice);
 
+    // Define as dimenções do bloco e da grade
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
     dim3 dimGrid((N + dimBlock.x - 1) / dimBlock.x, (N + dimBlock.y - 1) / dimBlock.y);
 
-    // Chame o kernel matrixMul com as matrizes d_A, d_B e d_C
-    matrixMul<<<dimGrid, dimBlock>>>(d_A, d_B, d_C, N);
+    // Chame o kernel matrixMul com as matrizes d_A, d_B e d_C (Escravos)
+    matrizMul<<<dimGrid, dimBlock>>>(d_A, d_B, d_C, N);
+
+    
+    cudaDeviceSynchronize();
 
     // Copie a matriz resultante d_C de volta para a matriz h_C no host
     cudaMemcpy(h_C, d_C, size, cudaMemcpyDeviceToHost);
 
-    // Imprima a matriz h_A
+    // Imprima a matriz A
     printf("Matriz A:\n");
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
@@ -65,7 +72,7 @@ int main() {
     }
     printf("\n");
 
-    // Imprima a matriz h_B
+    // Imprima a matriz B
     printf("Matriz B:\n");
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
@@ -75,7 +82,7 @@ int main() {
     }
     printf("\n");
 
-    // Imprima a matriz H_C
+    // Imprima a matriz C
     printf("Resultado da multiplicacao de matrizes:\n");
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
@@ -84,12 +91,12 @@ int main() {
         printf("\n");
     }
 
-    // Libere a memória alocada no dispositivo
+    // Liberação da memória alocada no dispositivo (GPU)
     cudaFree(d_A);
     cudaFree(d_B);
     cudaFree(d_C);
 
-    // Libere a memória alocada no host
+    // Liberação da memória alocada no host (CPU)
     free(h_A);
     free(h_B);
     free(h_C);
